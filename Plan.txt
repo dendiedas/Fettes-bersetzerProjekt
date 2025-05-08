@@ -1,0 +1,46 @@
+Aufgabenverteilung im Team (3 Personen)
+Person 1: Datenbank & Backend-Entwicklung
+
+Implementierung der SQL-Datenbank (bereits begonnen)
+Entwicklung des PHP-Backends für Datenbankzugriff
+Erstellung von APIs für Frontend-Kommunikation
+Benutzerauthentifizierung und Sicherheitsaspekte
+Session-Management
+
+Person 2: Frontend-Entwicklung & UX
+
+Gestaltung der Benutzeroberfläche (HTML, CSS)
+Implementierung der JavaScript-Funktionalitäten
+Entwicklung responsiver Designs für verschiedene Geräte
+Erstellung der Lernoberflächen (Karteikarten, Quizze, etc.)
+Integration mit dem Backend (AJAX/API-Calls)
+
+Person 3: Projektmanagement & Features
+
+Git-Verwaltung und Versionskontrolle
+Testszenarien und Qualitätssicherung
+Content-Erstellung (Beispielvokabeln, Kategorien)
+Dokumentation und Benutzerhandbuch
+Zusatzfeatures und Gamification-Elemente
+
+Meilensteine
+
+Phase 1: Grundfunktionalitäten (2-3 Wochen)
+
+Datenbank einrichten und Backend-Grundstruktur
+Basis-Frontend mit Anmeldung und Registrierung
+Einfache Vokabelerfassung und -abfrage
+
+
+Phase 2: Kernfunktionen (2-3 Wochen)
+
+Lernalgorithmus (Spaced Repetition)
+Kategorieverwaltung und Suchfunktionen
+Fortschrittsanzeige und Statistiken
+
+
+Phase 3: Erweiterungen (2-3 Wochen)
+
+Lernspiele und interaktive Elemente
+Import/Export-Funktionen
+Mobiloptimierung und PWA-Features
