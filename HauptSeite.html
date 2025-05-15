@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LernApp</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background-color: #f4f6fc;
+      color: #1c1c1c;
+    }
+
+    header {
+      background-color: #ffffff;
+      padding: 16px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e0e0e0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      font-size: 26px;
+      font-weight: bold;
+      color: #3c4fff;
+    }
+
+    .nav {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .nav a {
+      text-decoration: none;
+      color: #444;
+      font-size: 15px;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .nav a:hover {
+      color: #3c4fff;
+    }
+
+    .actions button {
+      margin-left: 10px;
+      padding: 8px 20px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-primary {
+      background-color: #3c4fff;
+      color: white;
+    }
+
+    .btn-secondary {
+      background-color: transparent;
+      color: #3c4fff;
+      border: 2px solid #3c4fff;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 80px 20px 40px;
+      background-color: #eef0ff;
+    }
+
+    .hero h1 {
+      font-size: 40px;
+      margin-bottom: 16px;
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: #555;
+      max-width: 700px;
+      margin: 0 auto 24px;
+    }
+
+    .cards {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 24px;
+      margin: 40px 20px;
+    }
+
+    .card {
+      width: 220px;
+      height: 280px;
+      border-radius: 20px;
+      padding: 20px;
+      font-weight: bold;
+      font-size: 18px;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      transition: transform 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+    }
+
+    .card:nth-child(1) { background-color: #d6f3ff; }
+    .card:nth-child(2) { background-color: #f3d6ff; }
+    .card:nth-child(3) { background-color: #b4a4fc; color: white; }
+    .card:nth-child(4) { background-color: #ffe0b2; }
+
+    /* Modal Styles */
+    #authModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      z-index: 999;
+    }
+
+    #modalBackdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    #modalContent {
+      position: relative;
+      background: white;
+      width: 400px;
+      max-width: 90%;
+      margin: 100px auto;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    #modalContent h2 {
+      margin-bottom: 16px;
+      font-size: 24px;
+    }
+
+    #modalContent input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    #modalContent button {
+      padding: 12px;
+      width: 100%;
+      background-color: #3c4fff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    #closeModal {
+      position: absolute;
+      top: 10px;
+      right: 16px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #999;
+    }
+
+    .modalTabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .modalTabs button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      background-color: #f0f0f0;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .modalTabs button:hover {
+      background-color: #e0e0e0;
+    }
+
+    .modalTab {
+      display: none;
+    }
+
+    .modalTab.active {
+      display: block;
+    }
+     * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background-color: #f4f6fc; }
+   
+    .cards {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 24px;
+      margin: 40px 20px;
+    }
+    
+    
+
+    @keyframes fadeIn {
+      from {
+        transform: scale(0.95);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">Quizlet</div>
+    <nav class="nav">
+      <a href="#">Lerntools ▾</a>
+      <a href="#">Themen ▾</a>
+    </nav>
+    <div class="actions">
+      <button class="btn-secondary" onclick="openModal()">Erstellen</button>
+      <button class="btn-primary" onclick="openModal()">Anmelden</button>
+    </div>
+  </header>
+
+  <div class="hero">
+    <h1>Wie möchtest du lernen?</h1>
+    <p>Mit interaktiven Karteikarten, Übungstests und Lernaktivitäten lernst du
+      alles, was du willst.</p>
+  </div>
+
+  <div class="cards">
+    <a href="Lernsets.html" style="text-decoration:none;">
+      <div class="card">Lernen</div>
+    </a>
+
+    <div class="card">Arbeitshilfen</div>
+    <div class="card">Karteikarten</div>
+    <div class="card">Übungstests</div>
+  </div>
+
+  <!-- Modal -->
+  <div id="authModal">
+    <div id="modalBackdrop"></div>
+
+    <div id="modalContent">
+      <span id="closeModal">&times;</span>
+
+      <div class="modalTabs">
+        <button onclick="showTab('login')">Anmelden</button>
+        <button onclick="showTab('register')">Registrieren</button>
+      </div>
+
+      <div id="loginTab" class="modalTab active">
+        <h2>🔐 Anmelden</h2>
+        <input type="email" placeholder="E-Mail-Adresse" />
+        <input type="password" placeholder="Passwort" />
+        <button>Anmelden</button>
+      </div>
+
+      <div id="registerTab" class="modalTab">
+        <h2>📝 Registrieren</h2>
+        <input type="email" placeholder="E-Mail-Adresse" />
+        <input type="password" placeholder="Passwort" />
+        <input type="password" placeholder="Passwort bestätigen" />
+        <button>Registrieren</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const modal = document.getElementById("authModal");
+    const closeBtn = document.getElementById("closeModal");
+
+    function openModal() {
+      modal.style.display = "block";
+      showTab("login");
+    }
+
+    closeBtn.onclick = () => modal.style.display = "none";
+
+    function showTab(tab) {
+      document.getElementById("loginTab").classList.remove("active");
+      document.getElementById("registerTab").classList.remove("active");
+
+      document.getElementById(tab + "Tab").classList.add("active");
+    }
+
+    window.onclick = function (event) {
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
+    };
+  </script>
+</body>
+</html>

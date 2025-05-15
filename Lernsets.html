@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lernsets</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f5f7fb;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .set-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+    .set {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      width: 220px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .set:hover {
+      transform: scale(1.03);
+    }
+  </style>
+</head>
+<body>
+  <h1>Wähle ein Lernset</h1>
+  <div class="set-container" id="sets"></div>
+
+  <script>
+    fetch('/api/lernsets')
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById('sets');
+        data.forEach(set => {
+          const div = document.createElement('div');
+          div.className = 'set';
+          div.innerHTML = `<h3>${set.name}</h3><p>${set.beschreibung}</p>`;
+          div.onclick = () => {
+            window.location.href = `lernen.html?setId=${set.id}`;
+          };
+          container.appendChild(div);
+        });
+      });
+  </script>
+</body>
+</html>
