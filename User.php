@@ -1,6 +1,6 @@
 <?php
 // Verbindung zur Datenbank, Session starten und Fehlerbehandlung
-require_once 'config/Database.php';
+require_once 'Database.php';
 session_start();
 
 /**
