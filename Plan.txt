@@ -1,5 +1,6 @@
 Aufgabenverteilung im Team (3 Personen)
-Person 1: Datenbank & Backend-Entwicklung
+
+Person 1 (Benni): Datenbank & Backend-Entwicklung
 
 Implementierung der SQL-Datenbank (bereits begonnen)
 Entwicklung des PHP-Backends für Datenbankzugriff
@@ -7,7 +8,7 @@ Erstellung von APIs für Frontend-Kommunikation
 Benutzerauthentifizierung und Sicherheitsaspekte
 Session-Management
 
-Person 2: Frontend-Entwicklung & UX
+Person 2 (Denis): Frontend-Entwicklung & UX
 
 Gestaltung der Benutzeroberfläche (HTML, CSS)
 Implementierung der JavaScript-Funktionalitäten
@@ -15,7 +16,7 @@ Entwicklung responsiver Designs für verschiedene Geräte
 Erstellung der Lernoberflächen (Karteikarten, Quizze, etc.)
 Integration mit dem Backend (AJAX/API-Calls)
 
-Person 3: Projektmanagement & Features
+Person 3 (Moritz): Projektmanagement & Features
 
 Git-Verwaltung und Versionskontrolle
 Testszenarien und Qualitätssicherung
