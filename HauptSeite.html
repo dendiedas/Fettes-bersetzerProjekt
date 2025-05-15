@@ -276,7 +276,7 @@
       <button class="btn-secondary" onclick="openModal('register')">Erstellen</button>
       <button class="btn-primary" onclick="openModal('login')">Anmelden</button>
       <div class="user-welcome">
-        Willkommen, <span id="username"></span> | 
+        Willkommen, <span id="username"></span> |
         <a href="#" onclick="logout()" style="color: #3c4fff; text-decoration: underline;">Abmelden</a>
       </div>
     </div>
@@ -284,15 +284,13 @@
 
   <div class="hero">
     <h1>Wie möchtest du lernen?</h1>
-    <p>Mit interaktiven Karteikarten, Übungstests und Lernaktivitäten lernst du
-      alles, was du willst.</p>
+    <p>Mit interaktiven Karteikarten, Übungstests und Lernaktivitäten lernst du alles, was du willst.</p>
   </div>
 
   <div class="cards">
     <a href="Lernsets.html" style="text-decoration:none;">
       <div class="card">Lernen</div>
     </a>
-
     <div class="card">Arbeitshilfen</div>
     <div class="card">Karteikarten</div>
     <div class="card">Übungstests</div>
@@ -301,10 +299,8 @@
   <!-- Modal -->
   <div id="authModal">
     <div id="modalBackdrop"></div>
-
     <div id="modalContent">
       <span id="closeModal">&times;</span>
-
       <div class="modalTabs">
         <button id="loginTabBtn" onclick="showTab('login')">Anmelden</button>
         <button id="registerTabBtn" onclick="showTab('register')">Registrieren</button>
@@ -345,22 +341,20 @@
     const registerSuccess = document.getElementById("registerSuccess");
     const loginTabBtn = document.getElementById("loginTabBtn");
     const registerTabBtn = document.getElementById("registerTabBtn");
-    const actions = document.querySelector(".actions");
     const userWelcome = document.querySelector(".user-welcome");
     const usernameSpan = document.getElementById("username");
 
-    // Überprüfen, ob der Benutzer bereits angemeldet ist
     checkLoginStatus();
 
-    function checkLoginStatus() {
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (user) {
-        // Benutzer ist angemeldet
+    async function checkLoginStatus() {
+      const res = await fetch('check_session.php');
+      const data = await res.json();
+
+      if (data.logged_in) {
         document.querySelectorAll('.actions button').forEach(btn => btn.style.display = 'none');
         userWelcome.style.display = 'block';
-        usernameSpan.textContent = user.username;
+        usernameSpan.textContent = data.username;
       } else {
-        // Benutzer ist nicht angemeldet
         document.querySelectorAll('.actions button').forEach(btn => btn.style.display = 'inline-block');
         userWelcome.style.display = 'none';
       }
@@ -379,10 +373,8 @@
     function showTab(tab) {
       document.getElementById("loginTab").classList.remove("active");
       document.getElementById("registerTab").classList.remove("active");
-
       document.getElementById(tab + "Tab").classList.add("active");
-      
-      // Aktiven Tab-Button hervorheben
+
       if (tab === 'login') {
         loginTabBtn.style.backgroundColor = '#e0e0e0';
         registerTabBtn.style.backgroundColor = '#f0f0f0';
@@ -390,7 +382,7 @@
         registerTabBtn.style.backgroundColor = '#e0e0e0';
         loginTabBtn.style.backgroundColor = '#f0f0f0';
       }
-      
+
       resetForms();
     }
 
@@ -402,98 +394,70 @@
       registerSuccess.style.display = 'none';
     }
 
-    // Login-Formular absenden
-    loginForm.addEventListener('submit', function(e) {
+    loginForm.addEventListener('submit', async function(e) {
       e.preventDefault();
-      
       const email = document.getElementById('loginEmail').value;
       const password = document.getElementById('loginPassword').value;
-      
-      // In einer echten Anwendung würde hier ein AJAX-Request an den Server erfolgen
-      // Zur Simulation verwenden wir localStorage
-      const users = JSON.parse(localStorage.getItem('users')) || [];
-      const user = users.find(u => u.email === email);
-      
-      if (user && user.password === password) { // In einer echten Anwendung würde hier eine Hash-Vergleichung stattfinden
-        // Erfolgreiche Anmeldung
-        localStorage.setItem('user', JSON.stringify({
-          userId: user.userId,
-          username: user.username,
-          email: user.email
-        }));
-        
-        // UI aktualisieren
-        checkLoginStatus();
-        
-        // Modal schließen
+
+      const formData = new FormData();
+      formData.append('username_or_email', email);
+      formData.append('password', password);
+
+      const response = await fetch('auth_login.php', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.text();
+      if (result === 'success') {
         modal.style.display = "none";
+        await checkLoginStatus();
       } else {
-        // Fehlerhafte Anmeldung
-        loginError.textContent = 'Ungültige E-Mail oder Passwort';
+        loginError.textContent = result;
         loginError.style.display = 'block';
       }
     });
 
-    // Registrierungsformular absenden
-    registerForm.addEventListener('submit', function(e) {
+    registerForm.addEventListener('submit', async function(e) {
       e.preventDefault();
-      
+
       const username = document.getElementById('registerUsername').value;
       const email = document.getElementById('registerEmail').value;
       const password = document.getElementById('registerPassword').value;
       const confirmPassword = document.getElementById('confirmPassword').value;
-      
-      // Passwörter überprüfen
+
       if (password !== confirmPassword) {
         registerError.textContent = 'Die Passwörter stimmen nicht überein';
         registerError.style.display = 'block';
         return;
       }
-      
-      // In einer echten Anwendung würde hier ein AJAX-Request an den Server erfolgen
-      // Zur Simulation verwenden wir localStorage
-      let users = JSON.parse(localStorage.getItem('users')) || [];
-      
-      // Prüfen, ob E-Mail oder Benutzername bereits existieren
-      if (users.some(u => u.email === email)) {
-        registerError.textContent = 'Diese E-Mail-Adresse wird bereits verwendet';
+
+      const formData = new FormData();
+      formData.append('username', username);
+      formData.append('email', email);
+      formData.append('password', password);
+
+      const response = await fetch('auth_register.php', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.text();
+      if (result === 'success') {
+        registerSuccess.textContent = 'Registrierung erfolgreich! Du kannst dich jetzt anmelden.';
+        registerSuccess.style.display = 'block';
+        registerError.style.display = 'none';
+        setTimeout(() => showTab('login'), 2000);
+      } else {
+        registerError.textContent = result;
         registerError.style.display = 'block';
-        return;
+        registerSuccess.style.display = 'none';
       }
-      
-      if (users.some(u => u.username === username)) {
-        registerError.textContent = 'Dieser Benutzername wird bereits verwendet';
-        registerError.style.display = 'block';
-        return;
-      }
-      
-      // Benutzer hinzufügen
-      const newUser = {
-        userId: users.length + 1,
-        username: username,
-        email: email,
-        password: password, // In einer echten Anwendung würde das Passwort gehasht werden
-        createdAt: new Date().toISOString()
-      };
-      
-      users.push(newUser);
-      localStorage.setItem('users', JSON.stringify(users));
-      
-      // Erfolgsmeldung anzeigen
-      registerSuccess.textContent = 'Registrierung erfolgreich! Du kannst dich jetzt anmelden.';
-      registerSuccess.style.display = 'block';
-      registerError.style.display = 'none';
-      
-      // Nach 2 Sekunden zum Login-Tab wechseln
-      setTimeout(() => {
-        showTab('login');
-      }, 2000);
     });
 
-    // Abmelden-Funktion
-    function logout() {
-      localStorage.removeItem('user');
-      checkLoginStatus();
+    async function logout() {
+      await fetch('logout.php');
+      await checkLoginStatus();
     }
 
     window.onclick = function (event) {
