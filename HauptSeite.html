@@ -229,8 +229,28 @@
       gap: 24px;
       margin: 40px 20px;
     }
+
+    .error-message {
+      color: #e53935;
+      font-size: 14px;
+      margin-top: 5px;
+      text-align: left;
+      display: none;
+    }
     
+    .success-message {
+      color: #43a047;
+      font-size: 14px;
+      margin-top: 5px;
+      padding: 10px;
+      background-color: #e8f5e9;
+      border-radius: 8px;
+      display: none;
+    }
     
+    .user-welcome {
+      display: none;
+    }
 
     @keyframes fadeIn {
       from {
@@ -253,8 +273,12 @@
       <a href="#">Themen ▾</a>
     </nav>
     <div class="actions">
-      <button class="btn-secondary" onclick="openModal()">Erstellen</button>
-      <button class="btn-primary" onclick="openModal()">Anmelden</button>
+      <button class="btn-secondary" onclick="openModal('register')">Erstellen</button>
+      <button class="btn-primary" onclick="openModal('login')">Anmelden</button>
+      <div class="user-welcome">
+        Willkommen, <span id="username"></span> | 
+        <a href="#" onclick="logout()" style="color: #3c4fff; text-decoration: underline;">Abmelden</a>
+      </div>
     </div>
   </header>
 
@@ -282,23 +306,31 @@
       <span id="closeModal">&times;</span>
 
       <div class="modalTabs">
-        <button onclick="showTab('login')">Anmelden</button>
-        <button onclick="showTab('register')">Registrieren</button>
+        <button id="loginTabBtn" onclick="showTab('login')">Anmelden</button>
+        <button id="registerTabBtn" onclick="showTab('register')">Registrieren</button>
       </div>
 
       <div id="loginTab" class="modalTab active">
         <h2>🔐 Anmelden</h2>
-        <input type="email" placeholder="E-Mail-Adresse" />
-        <input type="password" placeholder="Passwort" />
-        <button>Anmelden</button>
+        <form id="loginForm">
+          <input type="email" id="loginEmail" placeholder="E-Mail-Adresse" required />
+          <input type="password" id="loginPassword" placeholder="Passwort" required />
+          <div id="loginError" class="error-message"></div>
+          <button type="submit">Anmelden</button>
+        </form>
       </div>
 
       <div id="registerTab" class="modalTab">
         <h2>📝 Registrieren</h2>
-        <input type="email" placeholder="E-Mail-Adresse" />
-        <input type="password" placeholder="Passwort" />
-        <input type="password" placeholder="Passwort bestätigen" />
-        <button>Registrieren</button>
+        <form id="registerForm">
+          <input type="text" id="registerUsername" placeholder="Benutzername" required />
+          <input type="email" id="registerEmail" placeholder="E-Mail-Adresse" required />
+          <input type="password" id="registerPassword" placeholder="Passwort" required />
+          <input type="password" id="confirmPassword" placeholder="Passwort bestätigen" required />
+          <div id="registerError" class="error-message"></div>
+          <div id="registerSuccess" class="success-message"></div>
+          <button type="submit">Registrieren</button>
+        </form>
       </div>
     </div>
   </div>
@@ -306,24 +338,168 @@
   <script>
     const modal = document.getElementById("authModal");
     const closeBtn = document.getElementById("closeModal");
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
+    const loginError = document.getElementById("loginError");
+    const registerError = document.getElementById("registerError");
+    const registerSuccess = document.getElementById("registerSuccess");
+    const loginTabBtn = document.getElementById("loginTabBtn");
+    const registerTabBtn = document.getElementById("registerTabBtn");
+    const actions = document.querySelector(".actions");
+    const userWelcome = document.querySelector(".user-welcome");
+    const usernameSpan = document.getElementById("username");
 
-    function openModal() {
-      modal.style.display = "block";
-      showTab("login");
+    // Überprüfen, ob der Benutzer bereits angemeldet ist
+    checkLoginStatus();
+
+    function checkLoginStatus() {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (user) {
+        // Benutzer ist angemeldet
+        document.querySelectorAll('.actions button').forEach(btn => btn.style.display = 'none');
+        userWelcome.style.display = 'block';
+        usernameSpan.textContent = user.username;
+      } else {
+        // Benutzer ist nicht angemeldet
+        document.querySelectorAll('.actions button').forEach(btn => btn.style.display = 'inline-block');
+        userWelcome.style.display = 'none';
+      }
     }
 
-    closeBtn.onclick = () => modal.style.display = "none";
+    function openModal(tab) {
+      modal.style.display = "block";
+      showTab(tab);
+    }
+
+    closeBtn.onclick = () => {
+      modal.style.display = "none";
+      resetForms();
+    };
 
     function showTab(tab) {
       document.getElementById("loginTab").classList.remove("active");
       document.getElementById("registerTab").classList.remove("active");
 
       document.getElementById(tab + "Tab").classList.add("active");
+      
+      // Aktiven Tab-Button hervorheben
+      if (tab === 'login') {
+        loginTabBtn.style.backgroundColor = '#e0e0e0';
+        registerTabBtn.style.backgroundColor = '#f0f0f0';
+      } else {
+        registerTabBtn.style.backgroundColor = '#e0e0e0';
+        loginTabBtn.style.backgroundColor = '#f0f0f0';
+      }
+      
+      resetForms();
+    }
+
+    function resetForms() {
+      loginForm.reset();
+      registerForm.reset();
+      loginError.style.display = 'none';
+      registerError.style.display = 'none';
+      registerSuccess.style.display = 'none';
+    }
+
+    // Login-Formular absenden
+    loginForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      
+      // In einer echten Anwendung würde hier ein AJAX-Request an den Server erfolgen
+      // Zur Simulation verwenden wir localStorage
+      const users = JSON.parse(localStorage.getItem('users')) || [];
+      const user = users.find(u => u.email === email);
+      
+      if (user && user.password === password) { // In einer echten Anwendung würde hier eine Hash-Vergleichung stattfinden
+        // Erfolgreiche Anmeldung
+        localStorage.setItem('user', JSON.stringify({
+          userId: user.userId,
+          username: user.username,
+          email: user.email
+        }));
+        
+        // UI aktualisieren
+        checkLoginStatus();
+        
+        // Modal schließen
+        modal.style.display = "none";
+      } else {
+        // Fehlerhafte Anmeldung
+        loginError.textContent = 'Ungültige E-Mail oder Passwort';
+        loginError.style.display = 'block';
+      }
+    });
+
+    // Registrierungsformular absenden
+    registerForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const username = document.getElementById('registerUsername').value;
+      const email = document.getElementById('registerEmail').value;
+      const password = document.getElementById('registerPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      
+      // Passwörter überprüfen
+      if (password !== confirmPassword) {
+        registerError.textContent = 'Die Passwörter stimmen nicht überein';
+        registerError.style.display = 'block';
+        return;
+      }
+      
+      // In einer echten Anwendung würde hier ein AJAX-Request an den Server erfolgen
+      // Zur Simulation verwenden wir localStorage
+      let users = JSON.parse(localStorage.getItem('users')) || [];
+      
+      // Prüfen, ob E-Mail oder Benutzername bereits existieren
+      if (users.some(u => u.email === email)) {
+        registerError.textContent = 'Diese E-Mail-Adresse wird bereits verwendet';
+        registerError.style.display = 'block';
+        return;
+      }
+      
+      if (users.some(u => u.username === username)) {
+        registerError.textContent = 'Dieser Benutzername wird bereits verwendet';
+        registerError.style.display = 'block';
+        return;
+      }
+      
+      // Benutzer hinzufügen
+      const newUser = {
+        userId: users.length + 1,
+        username: username,
+        email: email,
+        password: password, // In einer echten Anwendung würde das Passwort gehasht werden
+        createdAt: new Date().toISOString()
+      };
+      
+      users.push(newUser);
+      localStorage.setItem('users', JSON.stringify(users));
+      
+      // Erfolgsmeldung anzeigen
+      registerSuccess.textContent = 'Registrierung erfolgreich! Du kannst dich jetzt anmelden.';
+      registerSuccess.style.display = 'block';
+      registerError.style.display = 'none';
+      
+      // Nach 2 Sekunden zum Login-Tab wechseln
+      setTimeout(() => {
+        showTab('login');
+      }, 2000);
+    });
+
+    // Abmelden-Funktion
+    function logout() {
+      localStorage.removeItem('user');
+      checkLoginStatus();
     }
 
     window.onclick = function (event) {
       if (event.target === modal) {
         modal.style.display = "none";
+        resetForms();
       }
     };
   </script>
