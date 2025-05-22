@@ -168,7 +168,7 @@ class User {
      * Benutzerprofil aktualisieren
      * @return boolean Erfolg oder Misserfolg
      */
-    public function updateProfile() {
+    public function updateProfile() { 
         // SQL-Abfrage zum Aktualisieren des Benutzerprofils
         $query = "UPDATE " . $this->table_name . " 
                  SET username = :username, email = :email 
