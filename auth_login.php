@@ -2,7 +2,9 @@
 require_once 'Database.php';
 require_once 'User.php';
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $db = (new Database())->getConnection();
 $user = new User($db);
