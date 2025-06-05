@@ -437,6 +437,38 @@
             height: 50px;
             font-size: 1.5rem;
         }
+        .home-btn {
+    padding: 10px 22px;
+    border-radius: 20px;
+    border: none; /* <-- Border entfernt */
+    background: white;
+    color: #3c4fff;
+    font-size: 1rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    margin-bottom: 18px;
+    margin-right: 10px;
+    transition: 
+        background 0.3s,
+        color 0.3s,
+        border-color 0.3s,
+        transform 0.18s,
+        box-shadow 0.18s;
+    box-shadow: 0 2px 8px rgba(60, 79, 255, 0.10);
+    outline: none;
+}
+.home-btn:hover, .home-btn:focus {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    /* border-color entfernt */
+    transform: translateY(-2px) scale(1.045);
+    box-shadow: 0 8px 28px rgba(60, 79, 255, 0.18);
+}
+.home-btn:active { transform: scale(0.98);
+}
     }
 </style>
 
@@ -444,6 +476,22 @@
 <body>
     <div class="container">
         <div class="header">
+            <button class="home-btn" onclick="window.location.href='HauptSeite.html'">
+  
+            <path d="M8 15L14 9L20 15" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10.5 15V20H17.5V15" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+                <linearGradient id="home-gradient" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#3c4fff"/>
+                    <stop offset="1" stop-color="#764ba2"/>
+                </linearGradient>
+            </defs>
+        </svg>
+    </span>
+    <span style="vertical-align: middle; font-size: 1.13rem; font-weight: 700; letter-spacing: 0.5px;">
+        Zurück zur Startseite
+    </span>
+</button>
             <h1>📚 Meine Karteikarten</h1>
             <div class="filter-controls">
                 <button class="filter-btn active" data-filter="all" onclick="filterCards('all')">Alle</button>
