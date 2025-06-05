@@ -439,7 +439,7 @@
         }
 
         
-        .home-btn {
+   .home-btn {
     display: inline-flex;
     align-items: center;
     gap: 10px;
@@ -477,8 +477,9 @@
 </head>
 <body>
     <div class="container">
-          <button class="home-btn" onclick="window.location.href='HauptSeite.html'">🏠 Zurück zur Startseite</button>
-        <div class="header">
+ <div style="display: flex; justify-content: center; width: 100%;">
+            <button class="home-btn" onclick="window.location.href='HauptSeite.html'">🏠 Zurück zur Startseite</button>
+        </div>        <div class="header">
             <h1>📚 Meine Karteikarten</h1>
             <div class="filter-controls">
                 <button class="filter-btn active" data-filter="all" onclick="filterCards('all')">Alle</button>
