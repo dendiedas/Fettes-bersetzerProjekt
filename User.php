@@ -64,58 +64,54 @@ class User {
      * @param string $password Passwort
      * @return boolean Erfolg oder Misserfolg
      */
+
     public function login($username_or_email, $password) {
-        // SQL-Abfrage zum Finden des Benutzers
-        $query = "SELECT user_id, username, email, password_hash 
-                 FROM " . $this->table_name . " 
-                 WHERE username = :user OR email = :user";
-        
-        // Vorbereiten der Abfrage
-        $stmt = $this->conn->prepare($query);
-        
-        // Parameter binden
-        $stmt->bindParam(":user", $username_or_email);
-        
-        // Abfrage ausführen
-        $stmt->execute();
-        
-        // Ergebnis abrufen
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        // Prüfen, ob Benutzer existiert und Passwort korrekt ist
-        if($row && password_verify($password, $row["password_hash"])) {
-            // Benutzereigenschaften setzen
-            $this->user_id = $row["user_id"];
-            $this->username = $row["username"];
-            $this->email = $row["email"];
-            
-            // Last Login aktualisieren
-            $this->updateLastLogin();
-            
-            // Session-Variablen setzen
-            $_SESSION["logged_in"] = true;
-            $_SESSION["user_id"] = $this->user_id;
-            $_SESSION["username"] = $this->username;
-            
-            return true;
-        }
-        
-        return false;
+    $query = "SELECT user_id, username, email, password_hash 
+              FROM " . $this->table_name . " 
+              WHERE username = :username OR email = :email";
+
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindValue(":username", $username_or_email, PDO::PARAM_STR);
+    $stmt->bindValue(":email", $username_or_email, PDO::PARAM_STR);
+    $stmt->execute();
+
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($row && password_verify($password, $row["password_hash"])) {
+        $this->user_id = $row["user_id"];
+        $this->username = $row["username"];
+        $this->email = $row["email"];
+
+        $this->updateLastLogin();
+
+        $_SESSION["logged_in"] = true;
+        $_SESSION["user_id"] = $this->user_id;
+        $_SESSION["username"] = $this->username;
+
+        return true;
     }
+
+    return false;
+}
     
     /**
      * Letzten Login-Zeitpunkt aktualisieren
      */
     private function updateLastLogin() {
-        $query = "UPDATE " . $this->table_name . " 
-                 SET last_login = CURRENT_TIMESTAMP 
-                 WHERE user_id = :user_id";
-        
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":user_id", $this->user_id);
-        $stmt->execute();
+    if (!$this->user_id) {
+        error_log("updateLastLogin() aufgerufen ohne user_id!");
+        return;
     }
-    
+
+    $query = "UPDATE " . $this->table_name . " 
+              SET last_login = CURRENT_TIMESTAMP 
+              WHERE user_id = :user_id";
+
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute([
+        ":user_id" => $this->user_id
+    ]);
+}
     /**
      * Prüfen, ob Benutzername bereits existiert
      * @param string $username Zu prüfender Benutzername
@@ -172,7 +168,7 @@ class User {
      * Benutzerprofil aktualisieren
      * @return boolean Erfolg oder Misserfolg
      */
-    public function updateProfile() {
+    public function updateProfile() { 
         // SQL-Abfrage zum Aktualisieren des Benutzerprofils
         $query = "UPDATE " . $this->table_name . " 
                  SET username = :username, email = :email 

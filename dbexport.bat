@@ -1,0 +1,1 @@
+C:\xamp\mysql\bin\mysqldump -u root vocabulary_trainer
