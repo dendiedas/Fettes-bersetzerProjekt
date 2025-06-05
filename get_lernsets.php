@@ -1,43 +1,60 @@
 <?php
-require_once 'Database.php';
-session_start();
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
 
-if (!isset($_SESSION['user_id'])) {
-  echo json_encode(['error' => 'Nicht angemeldet']);
-  exit;
+// Datenbankverbindung
+$servername = "localhost";
+$username = "root"; // Anpassen falls nötig
+$password = ""; // Anpassen falls nötig
+$dbname = "vocabulary_trainer"; // Geändert zu deiner Datenbank
+
+try {
+    $pdo = new PDO("mysql:host=$servername;dbname=$dbname;charset=utf8", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch(PDOException $e) {
+    echo json_encode(['error' => 'Datenbankverbindung fehlgeschlagen: ' . $e->getMessage()]);
+    exit;
 }
 
-if (!isset($_GET['setId'])) {
-  echo json_encode(['error' => 'Keine Set-ID angegeben']);
-  exit;
+$setId = isset($_GET['setId']) ? (int)$_GET['setId'] : 0;
+
+if ($setId <= 0) {
+    echo json_encode(['error' => 'Ungültige Lernset-ID']);
+    exit;
 }
 
-$db = (new Database())->getConnection();
-$setId = $_GET['setId'];
-$userId = $_SESSION['user_id'];
-
-// Lernset holen
-$stmt = $db->prepare("SELECT set_name AS name FROM learning_sets 
-                      WHERE set_id = :id AND (created_by = :uid OR is_public = 1)");
-$stmt->bindParam(":id", $setId);
-$stmt->bindParam(":uid", $userId);
-$stmt->execute();
-
-$set = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$set) {
-  echo json_encode(['error' => 'Lernset nicht gefunden oder kein Zugriff']);
-  exit;
+try {
+    // Lernset-Informationen abrufen (angepasst an deine Struktur)
+    $stmt = $pdo->prepare("SELECT set_id as id, set_name as name, description as beschreibung FROM learning_sets WHERE set_id = ?");
+    $stmt->execute([$setId]);
+    $lernset = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$lernset) {
+        echo json_encode(['error' => 'Lernset nicht gefunden']);
+        exit;
+    }
+    
+    // Vokabeln für dieses Lernset abrufen (über die Verknüpfungstabelle)
+    $stmt = $pdo->prepare("
+        SELECT v.vocab_id as id, v.source_word, v.target_word, v.example_sentence 
+        FROM vocabulary v 
+        INNER JOIN set_vocabulary sv ON v.vocab_id = sv.vocab_id 
+        WHERE sv.set_id = ? 
+        ORDER BY sv.added_at DESC
+    ");
+    $stmt->execute([$setId]);
+    $vokabeln = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    $response = [
+        'id' => $lernset['id'],
+        'name' => $lernset['name'],
+        'beschreibung' => $lernset['beschreibung'],
+        'vokabeln' => $vokabeln
+    ];
+    
+    echo json_encode($response);
+    
+} catch(PDOException $e) {
+    echo json_encode(['error' => 'Fehler beim Laden der Daten: ' . $e->getMessage()]);
 }
-
-// Vokabeln holen
-$stmt = $db->prepare("SELECT source_word, target_word, example_sentence 
-                      FROM vocabulary 
-                      WHERE category_id IS NOT NULL AND vocab_id IN (
-                        SELECT vocab_id FROM set_vocabulary WHERE set_id = :setId
-                      )");
-$stmt->bindParam(":setId", $setId);
-$stmt->execute();
-
-$set['vokabeln'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-echo json_encode($set);
+?>

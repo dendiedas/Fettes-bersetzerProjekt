@@ -12,6 +12,7 @@
     h1 {
       text-align: center;
       margin-bottom: 30px;
+      color: #333;
     }
     .vocab-list {
       max-width: 800px;
@@ -23,41 +24,146 @@
       padding: 15px;
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease;
+    }
+    .vocab-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     .vocab-card strong {
       display: block;
       margin-bottom: 5px;
+      color: #333;
+      font-size: 1.1em;
+    }
+    .vocab-example {
+      color: #666;
+      font-style: italic;
     }
     .back-link {
       display: inline-block;
       margin-top: 20px;
       text-decoration: none;
-      color: #3c4fff;
+      color: #667eea;
       font-weight: bold;
+      padding: 10px 15px;
+      border: 2px solid #667eea;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+    .back-link:hover {
+      background: #667eea;
+      color: white;
+    }
+    .add-vocab-section {
+      max-width: 800px;
+      margin: 30px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .add-vocab-section h2 {
+      color: #333;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+      box-sizing: border-box;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    .submit-btn {
+      padding: 12px 25px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    .loading {
+      text-align: center;
+      color: #666;
+      font-style: italic;
+    }
+    .empty-state {
+      text-align: center;
+      color: #999;
+      padding: 40px;
+    }
+    .empty-state .icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
     }
   </style>
 </head>
 <body>
   <h1 id="setTitle">Lernset laden...</h1>
   <div class="vocab-list" id="vocabList">
-    <p>Lade Vokabeln...</p>
+    <p class="loading">Lade Vokabeln...</p>
   </div>
+
+  <div class="add-vocab-section">
+    <h2>Neue Vokabel hinzufügen</h2>
+    <form id="addVocabForm">
+      <div class="form-group">
+        <input type="text" id="source" placeholder="Deutsches Wort" required>
+      </div>
+      <div class="form-group">
+        <input type="text" id="target" placeholder="Englische Übersetzung" required>
+      </div>
+      <div class="form-group">
+        <textarea id="example" placeholder="Beispielsatz (optional)"></textarea>
+      </div>
+      <button type="submit" class="submit-btn">Vokabel hinzufügen</button>
+    </form>
+  </div>
+
   <a href="Lernsets.html" class="back-link">⬅ Zurück zu den Lernsets</a>
 
   <script>
     const params = new URLSearchParams(window.location.search);
     const setId = params.get('setId');
 
-    if (!setId) {
-      document.getElementById('setTitle').textContent = 'Kein Lernset ausgewählt';
-      document.getElementById('vocabList').innerHTML = '';
-    } else {
-      fetch(`api/get_lernset.php?setId=${setId}`)
+    function loadVocabs() {
+      if (!setId) {
+        document.getElementById('setTitle').textContent = 'Kein Lernset ausgewählt';
+        document.getElementById('vocabList').innerHTML = '<p class="empty-state">Kein Lernset ausgewählt</p>';
+        return;
+      }
+
+      // Korrigierter API-Pfad (ohne 'api/' Ordner)
+      fetch(`get_lernset.php?setId=${setId}`)
         .then(res => res.json())
         .then(data => {
           if (data.error) {
             document.getElementById('setTitle').textContent = 'Fehler: ' + data.error;
-            document.getElementById('vocabList').innerHTML = '';
+            document.getElementById('vocabList').innerHTML = '<p class="empty-state">Fehler beim Laden</p>';
             return;
           }
 
@@ -67,20 +173,81 @@
           vocabList.innerHTML = '';
 
           if (data.vokabeln.length === 0) {
-            vocabList.innerHTML = '<p>Keine Vokabeln in diesem Set.</p>';
+            vocabList.innerHTML = `
+              <div class="empty-state">
+                <div class="icon">📚</div>
+                <p>Noch keine Vokabeln in diesem Set.</p>
+                <p>Füge unten deine erste Vokabel hinzu!</p>
+              </div>
+            `;
           } else {
             data.vokabeln.forEach(v => {
               const card = document.createElement('div');
               card.className = 'vocab-card';
               card.innerHTML = `
                 <strong>${v.source_word} → ${v.target_word}</strong>
-                <div>Beispiel: ${v.example_sentence || '-'}</div>
+                <div class="vocab-example">${v.example_sentence ? 'Beispiel: ' + v.example_sentence : ''}</div>
               `;
               vocabList.appendChild(card);
             });
           }
+        })
+        .catch(err => {
+          console.error('Fehler beim Laden:', err);
+          document.getElementById('setTitle').textContent = 'Fehler beim Laden';
+          document.getElementById('vocabList').innerHTML = '<p class="empty-state">Verbindungsfehler</p>';
         });
     }
+
+    document.getElementById("addVocabForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const source = document.getElementById("source").value.trim();
+      const target = document.getElementById("target").value.trim();
+      const example = document.getElementById("example").value.trim();
+
+      if (!source || !target) {
+        alert("Bitte deutsches Wort und englische Übersetzung angeben.");
+        return;
+      }
+
+      const submitBtn = document.querySelector('.submit-btn');
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Speichere...';
+      submitBtn.disabled = true;
+
+      fetch("add_vocab.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          setId: parseInt(setId),
+          source_word: source,
+          target_word: target,
+          example_sentence: example || ''
+        })
+      })
+      .then(res => res.text())
+      .then(result => {
+        if (result === "success") {
+          document.getElementById("addVocabForm").reset();
+          loadVocabs(); // Vokabeln neu laden
+          alert("Vokabel erfolgreich hinzugefügt!");
+        } else {
+          alert("Fehler: " + result);
+        }
+      })
+      .catch(err => {
+        console.error('Fehler:', err);
+        alert("Verbindungsfehler beim Speichern");
+      })
+      .finally(() => {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      });
+    });
+
+    // Seite laden
+    loadVocabs();
   </script>
 </body>
 </html>
