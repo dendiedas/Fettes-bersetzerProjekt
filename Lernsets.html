@@ -398,7 +398,7 @@
 
       if (name === '') return alert('Name darf nicht leer sein!');
 
-      fetch('api/create_lernset.php', {
+      fetch('create_lernset.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, beschreibung: desc })
