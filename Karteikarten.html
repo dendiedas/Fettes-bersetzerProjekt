@@ -290,7 +290,7 @@
 
     .modal-content {
         background-color: white;
-        margin: 15% auto;
+        margin: 5% auto;
         padding: 30px;
         border-radius: 15px;
         width: 90%;
@@ -425,7 +425,8 @@
         }
 
         .modal-content {
-            margin: 10% auto;
+            position: centered;
+            top: 5px;
             width: 95%;
             padding: 20px;
         }
@@ -437,6 +438,24 @@
             height: 50px;
             font-size: 1.5rem;
         }
+        .home-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 18px;
+    margin-right: 10px;
+    transition: background 0.3s, transform 0.2s;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+.home-btn:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    transform: translateY(-2px) scale(1.04);
+}
     }
 </style>
 
@@ -444,6 +463,8 @@
 <body>
     <div class="container">
         <div class="header">
+                <button class="home-btn" onclick="window.location.href='HauptSeite.html'">🏠 Zurück zur Startseite</button>
+
             <h1>📚 Meine Karteikarten</h1>
             <div class="filter-controls">
                 <button class="filter-btn active" data-filter="all" onclick="filterCards('all')">Alle</button>
