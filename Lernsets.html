@@ -415,7 +415,7 @@
     }
 
     function loadSets() {
-      fetch('api/lernsets.php')
+      fetch('api_lernsets.php')
         .then(res => res.json())
         .then(data => {
           const container = document.getElementById('sets');

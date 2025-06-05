@@ -1,70 +1,24 @@
 <?php
-// API-Endpoint für Lernsets
-header('Content-Type: application/json');
-
-// Datenbankverbindung herstellen
 require_once 'Database.php';
-require_once 'User.php';
-require_once 'Vocabulary.php';
-
-// Session starten
 session_start();
 
-// Prüfen, ob Benutzer angemeldet ist (optional, kann auch für öffentliche Sets entfernt werden)
-$logged_in = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
-
-// Datenbankverbindung herstellen
-$database = new Database();
-$db = $database->getConnection();
-
-// Vocabulary-Objekt erstellen
-$vocabulary = new Vocabulary($db);
-
-// Hilfsfunktion um Kategorien/Sammlungen abzurufen
-function getCategories($db) {
-    $query = "SELECT * FROM categories ORDER BY category_name";
-    $stmt = $db->prepare($query);
-    $stmt->execute();
-    
-    $categories = [];
-    while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $categories[] = [
-            'id' => $row['category_id'],
-            'name' => $row['category_name'],
-            'beschreibung' => $row['description'] ?? 'Lerne Vokabeln zu diesem Thema'
-        ];
-    }
-    
-    // Wenn keine Kategorien existieren, füge Standard-Lernsets hinzu
-    if(empty($categories)) {
-        $categories = [
-            [
-                'id' => 1,
-                'name' => 'Englisch Grundlagen',
-                'beschreibung' => 'Lerne grundlegende englische Vokabeln'
-            ],
-            [
-                'id' => 2,
-                'name' => 'Spanisch für Anfänger',
-                'beschreibung' => 'Spanische Vokabeln für den Einstieg'
-            ],
-            [
-                'id' => 3,
-                'name' => 'Französisch Alltag',
-                'beschreibung' => 'Französische Vokabeln für den täglichen Gebrauch'
-            ],
-            [
-                'id' => 4,
-                'name' => 'Italienisch Urlaub',
-                'beschreibung' => 'Wichtige italienische Begriffe für den Urlaub'
-            ]
-        ];
-    }
-    
-    return $categories;
+if (!isset($_SESSION["user_id"])) {
+  http_response_code(401);
+  echo json_encode(["error" => "Nicht angemeldet"]);
+  exit;
 }
 
-// Lernsets abrufen und als JSON zurückgeben
-$lernsets = getCategories($db);
-echo json_encode($lernsets);
+$db = (new Database())->getConnection();
+$user_id = $_SESSION["user_id"];
+
+$stmt = $db->prepare("SELECT set_id AS id, set_name AS name, description AS beschreibung 
+                      FROM learning_sets 
+                      WHERE created_by = :uid OR is_public = 1
+                      ORDER BY created_at DESC");
+
+$stmt->bindParam(":uid", $user_id, PDO::PARAM_INT);
+$stmt->execute();
+
+$sets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+echo json_encode($sets);
 ?>
