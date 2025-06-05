@@ -229,8 +229,28 @@
       gap: 24px;
       margin: 40px 20px;
     }
+
+    .error-message {
+      color: #e53935;
+      font-size: 14px;
+      margin-top: 5px;
+      text-align: left;
+      display: none;
+    }
     
+    .success-message {
+      color: #43a047;
+      font-size: 14px;
+      margin-top: 5px;
+      padding: 10px;
+      background-color: #e8f5e9;
+      border-radius: 8px;
+      display: none;
+    }
     
+    .user-welcome {
+      display: none;
+    }
 
     @keyframes fadeIn {
       from {
@@ -253,22 +273,24 @@
       <a href="#">Themen ▾</a>
     </nav>
     <div class="actions">
-      <button class="btn-secondary" onclick="openModal()">Erstellen</button>
-      <button class="btn-primary" onclick="openModal()">Anmelden</button>
+      <button class="btn-secondary" onclick="openModal('register')">Erstellen</button>
+      <button class="btn-primary" onclick="openModal('login')">Anmelden</button>
+      <div class="user-welcome">
+        Willkommen, <span id="username"></span> |
+        <a href="#" onclick="logout()" style="color: #3c4fff; text-decoration: underline;">Abmelden</a>
+      </div>
     </div>
   </header>
 
   <div class="hero">
     <h1>Wie möchtest du lernen?</h1>
-    <p>Mit interaktiven Karteikarten, Übungstests und Lernaktivitäten lernst du
-      alles, was du willst.</p>
+    <p>Mit interaktiven Karteikarten, Übungstests und Lernaktivitäten lernst du alles, was du willst.</p>
   </div>
 
   <div class="cards">
     <a href="Lernsets.html" style="text-decoration:none;">
       <div class="card">Lernen</div>
     </a>
-
     <div class="card">Arbeitshilfen</div>
     <div class="card">Karteikarten</div>
     <div class="card">Übungstests</div>
@@ -277,28 +299,34 @@
   <!-- Modal -->
   <div id="authModal">
     <div id="modalBackdrop"></div>
-
     <div id="modalContent">
       <span id="closeModal">&times;</span>
-
       <div class="modalTabs">
-        <button onclick="showTab('login')">Anmelden</button>
-        <button onclick="showTab('register')">Registrieren</button>
+        <button id="loginTabBtn" onclick="showTab('login')">Anmelden</button>
+        <button id="registerTabBtn" onclick="showTab('register')">Registrieren</button>
       </div>
 
       <div id="loginTab" class="modalTab active">
         <h2>🔐 Anmelden</h2>
-        <input type="email" placeholder="E-Mail-Adresse" />
-        <input type="password" placeholder="Passwort" />
-        <button>Anmelden</button>
+        <form id="loginForm">
+          <input type="email" id="loginEmail" placeholder="E-Mail-Adresse" required />
+          <input type="password" id="loginPassword" placeholder="Passwort" required />
+          <div id="loginError" class="error-message"></div>
+          <button type="submit">Anmelden</button>
+        </form>
       </div>
 
       <div id="registerTab" class="modalTab">
         <h2>📝 Registrieren</h2>
-        <input type="email" placeholder="E-Mail-Adresse" />
-        <input type="password" placeholder="Passwort" />
-        <input type="password" placeholder="Passwort bestätigen" />
-        <button>Registrieren</button>
+        <form id="registerForm">
+          <input type="text" id="registerUsername" placeholder="Benutzername" required />
+          <input type="email" id="registerEmail" placeholder="E-Mail-Adresse" required />
+          <input type="password" id="registerPassword" placeholder="Passwort" required />
+          <input type="password" id="confirmPassword" placeholder="Passwort bestätigen" required />
+          <div id="registerError" class="error-message"></div>
+          <div id="registerSuccess" class="success-message"></div>
+          <button type="submit">Registrieren</button>
+        </form>
       </div>
     </div>
   </div>
@@ -306,26 +334,141 @@
   <script>
     const modal = document.getElementById("authModal");
     const closeBtn = document.getElementById("closeModal");
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
+    const loginError = document.getElementById("loginError");
+    const registerError = document.getElementById("registerError");
+    const registerSuccess = document.getElementById("registerSuccess");
+    const loginTabBtn = document.getElementById("loginTabBtn");
+    const registerTabBtn = document.getElementById("registerTabBtn");
+    const userWelcome = document.querySelector(".user-welcome");
+    const usernameSpan = document.getElementById("username");
 
-    function openModal() {
-      modal.style.display = "block";
-      showTab("login");
+    checkLoginStatus();
+
+    async function checkLoginStatus() {
+      const res = await fetch('check_session.php');
+      const data = await res.json();
+
+      if (data.logged_in) {
+        document.querySelectorAll('.actions button').forEach(btn => btn.style.display = 'none');
+        userWelcome.style.display = 'block';
+        usernameSpan.textContent = data.username;
+      } else {
+        document.querySelectorAll('.actions button').forEach(btn => btn.style.display = 'inline-block');
+        userWelcome.style.display = 'none';
+      }
     }
 
-    closeBtn.onclick = () => modal.style.display = "none";
+    function openModal(tab) {
+      modal.style.display = "block";
+      showTab(tab);
+    }
+
+    closeBtn.onclick = () => {
+      modal.style.display = "none";
+      resetForms();
+    };
 
     function showTab(tab) {
       document.getElementById("loginTab").classList.remove("active");
       document.getElementById("registerTab").classList.remove("active");
-
       document.getElementById(tab + "Tab").classList.add("active");
+
+      if (tab === 'login') {
+        loginTabBtn.style.backgroundColor = '#e0e0e0';
+        registerTabBtn.style.backgroundColor = '#f0f0f0';
+      } else {
+        registerTabBtn.style.backgroundColor = '#e0e0e0';
+        loginTabBtn.style.backgroundColor = '#f0f0f0';
+      }
+
+      resetForms();
+    }
+
+    function resetForms() {
+      loginForm.reset();
+      registerForm.reset();
+      loginError.style.display = 'none';
+      registerError.style.display = 'none';
+      registerSuccess.style.display = 'none';
+    }
+
+    loginForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      const formData = new FormData();
+      formData.append('username_or_email', email);
+      formData.append('password', password);
+
+      const response = await fetch('auth_login.php', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.text();
+      if (result === 'success') {
+        modal.style.display = "none";
+        await checkLoginStatus();
+      } else {
+        loginError.textContent = result;
+        loginError.style.display = 'block';
+      }
+    });
+
+    registerForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const username = document.getElementById('registerUsername').value;
+      const email = document.getElementById('registerEmail').value;
+      const password = document.getElementById('registerPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      if (password !== confirmPassword) {
+        registerError.textContent = 'Die Passwörter stimmen nicht überein';
+        registerError.style.display = 'block';
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('username', username);
+      formData.append('email', email);
+      formData.append('password', password);
+
+      const response = await fetch('auth_register.php', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.text();
+      if (result === 'success') {
+        registerSuccess.textContent = 'Registrierung erfolgreich! Du kannst dich jetzt anmelden.';
+        registerSuccess.style.display = 'block';
+        registerError.style.display = 'none';
+        setTimeout(() => showTab('login'), 2000);
+      } else {
+        registerError.textContent = result;
+        registerError.style.display = 'block';
+        registerSuccess.style.display = 'none';
+      }
+    });
+
+    async function logout() {
+      await fetch('logout.php');
+      await checkLoginStatus();
     }
 
     window.onclick = function (event) {
       if (event.target === modal) {
         modal.style.display = "none";
+        resetForms();
       }
     };
+
+    //endlich gehts
+
   </script>
 </body>
 </html>

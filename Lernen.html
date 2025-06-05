@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vokabeln lernen</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(135deg,#4facfe,#00f2fe);
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .header {
+      position: fixed;
+      top: 20px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+    
+    .progress {
+      color: white;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+    
+    .back-button {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    
+    .title {
+      color: white;
+      font-size: 1.5rem;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .card {
+      background: white;
+      width: 320px;
+      height: 220px;
+      border-radius: 16px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+      perspective: 1000px;
+      cursor: pointer;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    
+    .card-inner {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      transform-style: preserve-3d;
+      transition: transform 0.6s;
+      border-radius: 16px;
+    }
+    
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+    
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      padding: 20px;
+      box-sizing: border-box;
+      border-radius: 16px;
+      text-align: center;
+    }
+    
+    .card-front {
+      background: #ffffff;
+    }
+    
+    .card-back {
+      background: #f0f0f0;
+      transform: rotateY(180deg);
+    }
+    
+    .controls {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .controls button {
+      padding: 10px 24px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      background: #0066cc;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    
+    .controls button:hover {
+      background: #004999;
+    }
+    
+    .loading {
+      color: white;
+      font-size: 1.2rem;
+      text-align: center;
+    }
+    
+    .error {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
+      text-align: center;
+      color: #e74c3c;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <a href="Lernsets.html" class="back-button">← Zurück</a>
+    <div class="progress" id="progress">Karte 1 von 5</div>
+  </div>
+
+  <div class="title" id="setTitle">Vokabeln lernen</div>
+
+  <div id="content">
+    <div class="loading">Vokabeln werden geladen...</div>
+  </div>
+
+  <script>
+    // Parameter aus der URL auslesen
+    function getUrlParameter(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
+    
+    // Lernset-ID aus der URL abrufen
+    const setId = getUrlParameter('setId') || 1;
+    
+    // Vokabeln und aktueller Index
+    let vokabeln = [];
+    let currentIndex = 0;
+    
+    // Beim Laden der Seite
+    document.addEventListener('DOMContentLoaded', function() {
+      // Vokabeln laden
+      fetchVokabeln();
+    });
+    
+    // Vokabeln vom API laden
+    function fetchVokabeln() {
+      fetch(`api_vokabeln.php?setId=${setId}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Netzwerkfehler beim Laden der Vokabeln');
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Vokabeln speichern
+          vokabeln = data;
+          
+          // Lernset-Titel über API holen (nicht implementiert in dieser Version)
+          // Alternativ könnten wir den Set-Namen über einen weiteren API-Call holen
+          setLernsetTitle(setId);
+          
+          // Vokabelkarte anzeigen
+          renderVocableCard();
+        })
+        .catch(error => {
+          console.error('Fehler:', error);
+          document.getElementById('content').innerHTML = `
+            <div class="error">
+              <p>Fehler beim Laden der Vokabeln. Versuche es später noch einmal.</p>
+              <p>Details: ${error.message}</p>
+              <button onclick="window.location.href='Lernsets.html'">Zurück zu Lernsets</button>
+            </div>
+          `;
+          
+          // Bei API-Fehler nach 3 Sekunden Beispieldaten anzeigen
+          setTimeout(() => {
+            // Beispiel-Vokabeln für Fallback
+            vokabeln = [
+              { deutsch: "Apfel", englisch: "Apple" },
+              { deutsch: "Buch", englisch: "Book" },
+              { deutsch: "Stuhl", englisch: "Chair" },
+              { deutsch: "Fenster", englisch: "Window" },
+              { deutsch: "Tisch", englisch: "Table" }
+            ];
+            
+            // Lernset-Titel setzen
+            setLernsetTitle(setId);
+            
+            // Vokabelkarte anzeigen
+            renderVocableCard();
+          }, 3000);
+        });
+    }
+    
+    // Lernset-Titel basierend auf ID setzen
+    function setLernsetTitle(id) {
+      // Einfaches Mapping für Demonstrationszwecke
+      const titles = {
+        1: 'Englisch Grundlagen',
+        2: 'Spanisch für Anfänger',
+        3: 'Französisch Alltag',
+        4: 'Italienisch Urlaub'
+      };
+      
+      const title = titles[id] || 'Vokabeln lernen';
+      document.getElementById('setTitle').textContent = title;
+      document.title = title;
+    }
+    
+    // Vokabelkarte rendern
+    function renderVocableCard() {
+      const contentDiv = document.getElementById('content');
+      
+      // Prüfen, ob Vokabeln vorhanden sind
+      if (vokabeln.length === 0) {
+        contentDiv.innerHTML = `
+          <div class="error">
+            <p>Keine Vokabeln in diesem Lernset gefunden.</p>
+            <button onclick="window.location.href='Lernsets.html'">Zurück zu Lernsets</button>
+          </div>
+        `;
+        return;
+      }
+      
+      // Vokabelkarte erstellen
+      contentDiv.innerHTML = `
+        <div class="card" id="vocableCard">
+          <div class="card-inner">
+            <div class="card-front" id="frontText"></div>
+            <div class="card-back" id="backText"></div>
+          </div>
+        </div>
+        
+        <div class="controls">
+          <button onclick="prevCard()">Zurück</button>
+          <button onclick="nextCard()">Weiter</button>
+        </div>
+      `;
+      
+      // Karte mit Klick-Handler initialisieren
+      const card = document.getElementById("vocableCard");
+      card.addEventListener("click", () => {
+        card.classList.toggle("flipped");
+      });
+      
+      // Erste Vokabel anzeigen
+      showCard(0);
+    }
+    
+    // Vokabel anzeigen
+    function showCard(index) {
+      const frontText = document.getElementById("frontText");
+      const backText = document.getElementById("backText");
+      const progress = document.getElementById("progress");
+      const card = document.getElementById("vocableCard");
+      
+      // Inhalt setzen
+      frontText.textContent = vokabeln[index].deutsch;
+      backText.textContent = vokabeln[index].englisch;
+      progress.textContent = `Karte ${index+1} von ${vokabeln.length}`;
+      
+      // Karte zurückdrehen, falls sie umgedreht war
+      card.classList.remove("flipped");
+      
+      // Aktuellen Index aktualisieren
+      currentIndex = index;
+    }
+    
+    // Zur nächsten Karte
+    function nextCard() {
+      currentIndex = (currentIndex + 1) % vokabeln.length;
+      showCard(currentIndex);
+    }
+    
+    // Zur vorherigen Karte
+    function prevCard() {
+      currentIndex = (currentIndex - 1 + vokabeln.length) % vokabeln.length;
+      showCard(currentIndex);
+    }
+  </script>
+</body>
+</html>
