@@ -1,24 +1,28 @@
 <?php
-require_once 'Database.php';
-session_start();
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
 
-if (!isset($_SESSION["user_id"])) {
-  http_response_code(401);
-  echo json_encode(["error" => "Nicht angemeldet"]);
-  exit;
+// Datenbankverbindung
+$servername = "localhost";
+$username = "root"; // Anpassen falls nötig
+$password = ""; // Anpassen falls nötig
+$dbname = "vocabulary_trainer"; // Geändert zu deiner Datenbank
+
+try {
+    $pdo = new PDO("mysql:host=$servername;dbname=$dbname;charset=utf8", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch(PDOException $e) {
+    echo json_encode(['error' => 'Datenbankverbindung fehlgeschlagen: ' . $e->getMessage()]);
+    exit;
 }
 
-$db = (new Database())->getConnection();
-$user_id = $_SESSION["user_id"];
-
-$stmt = $db->prepare("SELECT set_id AS id, set_name AS name, description AS beschreibung 
-                      FROM learning_sets 
-                      WHERE created_by = :uid OR is_public = 1
-                      ORDER BY created_at DESC");
-
-$stmt->bindParam(":uid", $user_id, PDO::PARAM_INT);
-$stmt->execute();
-
-$sets = $stmt->fetchAll(PDO::FETCH_ASSOC);
-echo json_encode($sets);
+try {
+    // Angepasst an deine Tabellenstruktur
+    $stmt = $pdo->query("SELECT set_id as id, set_name as name, description as beschreibung, created_at FROM learning_sets ORDER BY created_at DESC");
+    $lernsets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    echo json_encode($lernsets);
+} catch(PDOException $e) {
+    echo json_encode(['error' => 'Fehler beim Laden der Lernsets: ' . $e->getMessage()]);
+}
 ?>
