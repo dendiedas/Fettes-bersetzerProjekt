@@ -1,5 +1,5 @@
 <?php
-header('Content-Type: text/plain');
+header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
@@ -79,7 +79,7 @@ try {
     // Transaktion bestätigen
     $pdo->commit();
     
-    echo "success";
+    echo json_encode(["status" => "success"]);
 } catch(PDOException $e) {
     // Transaktion rückgängig machen bei Fehler
     $pdo->rollBack();
